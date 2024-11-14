@@ -10,8 +10,17 @@ export interface MovementBehavior {
   ): void;
 }
 
+/**
+ * @deprecated Replace with mass/size component value
+ */
+const TEMP_BODY_SIZE = 10;
+
 export class BounceBehavior implements MovementBehavior {
   type = "bounce";
+
+  constructor({ decay = 0 }: { decay?: number } = {}) {
+    this.decay = decay;
+  }
 
   update(
     position: Position,
@@ -21,13 +30,36 @@ export class BounceBehavior implements MovementBehavior {
     position.x += velocity.x;
     position.y += velocity.y;
 
-    if (position.x + 10 > bounds.width || position.x < 0) {
-      velocity.x = -velocity.x;
+    if (position.x + TEMP_BODY_SIZE > bounds.width || position.x < 0) {
+      if (position.x > bounds.width) {
+        position.x = bounds.width - TEMP_BODY_SIZE;
+      }
+      if (position.x < 0) {
+        position.x = 0;
+      }
+      if (velocity.x < 0) {
+        velocity.x = Math.max(-velocity.x - this.decay, 0);
+      } else {
+        velocity.x = Math.min(-velocity.x + this.decay, 0);
+      }
     }
-    if (position.y + 10 > bounds.height || position.y < 0) {
-      velocity.y = -velocity.y;
+    if (position.y + TEMP_BODY_SIZE > bounds.height || position.y < 0) {
+      if (position.y > bounds.height) {
+        position.y = bounds.height;
+      }
+      if (position.y < 0) {
+        position.y = 0;
+      }
+
+      if (velocity.y < 0) {
+        velocity.y = Math.max(-velocity.y - this.decay, 0);
+      } else {
+        velocity.y = Math.min(-velocity.y + this.decay, 0);
+      }
     }
   }
+
+  decay;
 }
 
 export class CircularBehavior implements MovementBehavior {
@@ -79,8 +111,10 @@ export class SineBehavior implements MovementBehavior {
       this.startY + Math.sin(this.time * this.frequency) * this.amplitude;
 
     // Wrap around screen
-    if (position.x < -10) position.x = window.innerWidth + 10;
-    if (position.x > window.innerWidth + 10) position.x = -10;
+    if (position.x < -TEMP_BODY_SIZE)
+      position.x = window.innerWidth + TEMP_BODY_SIZE;
+    if (position.x > window.innerWidth + TEMP_BODY_SIZE)
+      position.x = -TEMP_BODY_SIZE;
   }
 }
 
@@ -104,13 +138,13 @@ export class GravityBehavior implements MovementBehavior {
     position.y += velocity.y;
 
     // Ground collision
-    if (position.y + 10 > bounds.height) {
-      position.y = bounds.height - 10;
+    if (position.y + TEMP_BODY_SIZE > bounds.height) {
+      position.y = bounds.height - TEMP_BODY_SIZE;
       velocity.y = -velocity.y * this.bounce;
     }
 
     // Wall collision
-    if (position.x + 10 > bounds.width || position.x < 0) {
+    if (position.x + TEMP_BODY_SIZE > bounds.width || position.x < 0) {
       velocity.x = -velocity.x * this.bounce;
     }
   }

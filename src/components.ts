@@ -58,3 +58,17 @@ export class Movement extends Component {
   }
   behavior: MovementBehavior;
 }
+
+export class Controller extends Component {
+  type = "controller" as const;
+  constructor(params: {
+    directions: Partial<
+      Record<"up" | "down" | "left" | "right", { v: number }>
+    >;
+  }) {
+    super();
+    this.directions = params.directions;
+  }
+
+  directions;
+}

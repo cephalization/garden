@@ -18,6 +18,7 @@ export class World {
 
   addSystem(system: System): void {
     this.systems.push(system);
+    system?.init?.();
   }
 
   createEntity(): Entity {
