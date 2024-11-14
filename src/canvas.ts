@@ -8,7 +8,7 @@ function resizeCanvas(
   canvas.style.height = `${window.innerHeight}px`;
   canvas.width = Math.floor(window.innerWidth * scale);
   canvas.height = Math.floor(window.innerHeight * scale);
-  ctx.setTransform(scale, 0, 0, scale, 0, 0);
+  ctx.scale(scale, scale);
   bounds.width = canvas.width / scale;
   bounds.height = canvas.height / scale;
 }
