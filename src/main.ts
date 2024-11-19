@@ -107,11 +107,13 @@ gravityCube.addComponent(new Movement({ behavior: new GravityBehavior() }));
 
 // User controllable cube with gravity
 const playerCube2 = world.createEntity();
+// TODO: convert to vectors
 playerCube2.addComponent(
   new Position({ x: 400, y: canvasSetup.bounds.height - 80 }),
 );
 playerCube2.addComponent(new Velocity({ x: 0, y: 0 }));
 playerCube2.addComponent(new Renderable({ color: "yellow", size: 10 }));
+// TODO: These modifiers should not be coupled to actions, they should just be true or false
 playerCube2.addComponent(
   new Controller({
     modifiers: {
@@ -126,6 +128,10 @@ playerCube2.addComponent(
     },
   }),
 );
+// TODO: The movement component should
+// - accept multiple behaviors
+// - apply them all
+// Create a new behavior that maps velocity vectors
 playerCube2.addComponent(
   new Movement({ behavior: new GravityBehavior(0.5, 0.1) }),
 );
