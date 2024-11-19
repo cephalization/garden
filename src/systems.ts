@@ -18,6 +18,7 @@ export interface SystemUpdateConfig {
 export interface System {
   init?: () => void;
   update(config: SystemUpdateConfig): void;
+  cleanup?: () => void;
 }
 
 export class MovementSystem implements System {
@@ -65,6 +66,13 @@ export class RenderSystem implements System {
   }
 }
 
+export type KeyMeta = {
+  key: string;
+  held: boolean;
+  pressed: boolean;
+  released: boolean;
+};
+
 export class KeyboardControllerSystem implements System {
   static DEFAULT_KEYMAP = {
     up: ["ArrowUp", "w"],
@@ -78,18 +86,36 @@ export class KeyboardControllerSystem implements System {
     keymap?: { up: string[]; down: string[]; left: string[]; right: string[] };
   } = {}) {
     this.keymap = keymap;
+    this.held = new Map<string, KeyMeta>();
+    Object.values(this.keymap).forEach((keys) => {
+      keys.forEach((key) => {
+        this.held.set(key, {
+          key,
+          held: false,
+          pressed: false,
+          released: false,
+        });
+      });
+    });
   }
   init(): void {
     if (window) {
       window.addEventListener("keydown", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        this.held.add(e.key);
+        const oldMeta = this.held.get(e.key);
+        this.held.set(e.key, {
+          key: e.key,
+          held: true,
+          pressed: !oldMeta?.held,
+          released: false,
+        });
       });
       window.addEventListener("keyup", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        this.held.delete(e.key);
+        this.held.set(e.key, {
+          key: e.key,
+          held: false,
+          pressed: false,
+          released: true,
+        });
       });
     }
   }
@@ -101,39 +127,94 @@ export class KeyboardControllerSystem implements System {
         entity.hasComponent("velocity") &&
         entity.hasComponent("controller")
       ) {
-        // pull out watched keys
-        const keys = Object.fromEntries(this.held.entries());
         // pull out relevant components
         const eVelocity = entity.getComponent<Velocity>("velocity")!;
         const eController = entity.getComponent<Controller>("controller")!;
-        // apply velocities
+        // apply hold velocities
         if (
-          this.keymap.up.some((key) => keys[key] !== undefined) &&
-          eController.directions.up
+          this.keymap.up.some((key) => this.held.get(key)?.held) &&
+          eController.modifiers.hold?.up
         ) {
-          eVelocity.y -= eController.directions.up.v;
+          eVelocity.y -= eController.modifiers.hold?.up.v;
         }
         if (
-          this.keymap.down.some((key) => keys[key] !== undefined) &&
-          eController.directions.down
+          this.keymap.down.some((key) => this.held.get(key)?.held) &&
+          eController.modifiers.hold?.down
         ) {
-          eVelocity.y += eController.directions.down.v;
+          eVelocity.y += eController.modifiers.hold?.down.v;
         }
         if (
-          this.keymap.left.some((key) => keys[key] !== undefined) &&
-          eController.directions.left
+          this.keymap.left.some((key) => this.held.get(key)?.held) &&
+          eController.modifiers.hold?.left
         ) {
-          eVelocity.x -= eController.directions.left.v;
+          eVelocity.x -= eController.modifiers.hold?.left.v;
         }
         if (
-          this.keymap.right.some((key) => keys[key] !== undefined) &&
-          eController.directions.right
+          this.keymap.right.some((key) => this.held.get(key)?.held) &&
+          eController.modifiers.hold?.right
         ) {
-          eVelocity.x += eController.directions.right.v;
+          eVelocity.x += eController.modifiers.hold?.right.v;
+        }
+        // apply press velocities
+        if (
+          this.keymap.up.some((key) => this.held.get(key)?.pressed) &&
+          eController.modifiers.press?.up
+        ) {
+          eVelocity.y -= eController.modifiers.press?.up.v;
+        }
+        if (
+          this.keymap.down.some((key) => this.held.get(key)?.pressed) &&
+          eController.modifiers.press?.down
+        ) {
+          eVelocity.y += eController.modifiers.press?.down.v;
+        }
+        if (
+          this.keymap.left.some((key) => this.held.get(key)?.pressed) &&
+          eController.modifiers.press?.left
+        ) {
+          eVelocity.x -= eController.modifiers.press?.left.v;
+        }
+        if (
+          this.keymap.right.some((key) => this.held.get(key)?.pressed) &&
+          eController.modifiers.press?.right
+        ) {
+          eVelocity.x += eController.modifiers.press?.right.v;
+        }
+        // apply release velocities
+        if (
+          this.keymap.up.some((key) => this.held.get(key)?.released) &&
+          eController.modifiers.release?.up
+        ) {
+          eVelocity.y -= eController.modifiers.release?.up.v;
+        }
+        if (
+          this.keymap.down.some((key) => this.held.get(key)?.released) &&
+          eController.modifiers.release?.down
+        ) {
+          eVelocity.y += eController.modifiers.release?.down.v;
+        }
+        if (
+          this.keymap.left.some((key) => this.held.get(key)?.released) &&
+          eController.modifiers.release?.left
+        ) {
+          eVelocity.x += eController.modifiers.release?.left.v;
+        }
+        if (
+          this.keymap.right.some((key) => this.held.get(key)?.released) &&
+          eController.modifiers.release?.right
+        ) {
+          eVelocity.x += eController.modifiers.release?.right.v;
         }
       }
     });
   }
+  cleanup() {
+    // reset pressed and released flags
+    this.held.forEach((meta) => {
+      meta.pressed = false;
+      meta.released = false;
+    });
+  }
   keymap;
-  held: Set<string> = new Set();
+  held;
 }

@@ -31,6 +31,9 @@ export class World {
     this.systems.forEach((system) => {
       system.update({ entities: this.entities, state, canvasSetup });
     });
+    this.systems.forEach((system) => {
+      system.cleanup?.();
+    });
   }
 }
 

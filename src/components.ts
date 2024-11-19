@@ -59,16 +59,22 @@ export class Movement extends Component {
   behavior: MovementBehavior;
 }
 
+export type ControllerAction = { v: number };
+export type ControllerDirections = Record<
+  "up" | "down" | "left" | "right",
+  ControllerAction
+>;
+export type ControllerModifiers = Record<
+  "press" | "hold" | "release",
+  Partial<ControllerDirections>
+>;
+
 export class Controller extends Component {
   type = "controller" as const;
-  constructor(params: {
-    directions: Partial<
-      Record<"up" | "down" | "left" | "right", { v: number }>
-    >;
-  }) {
+  constructor(params: { modifiers: Partial<ControllerModifiers> }) {
     super();
-    this.directions = params.directions;
+    this.modifiers = params.modifiers;
   }
 
-  directions;
+  modifiers;
 }

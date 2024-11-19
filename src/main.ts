@@ -80,28 +80,30 @@ gravityCube.addComponent(new Renderable({ color: "orange", size: 10 }));
 gravityCube.addComponent(new Movement({ behavior: new GravityBehavior() }));
 
 // User controllable cube with bounce
-const playerCube = world.createEntity();
-playerCube.addComponent(
-  new Position({ x: 100, y: canvasSetup.bounds.height - 80 }),
-);
-playerCube.addComponent(new Velocity({ x: 0, y: 0 }));
-playerCube.addComponent(new Renderable({ color: "pink", size: 10 }));
-playerCube.addComponent(
-  new Controller({
-    directions: {
-      right: { v: 0.3 },
-      left: { v: 0.3 },
-      up: { v: 0.3 },
-      down: { v: 0.3 },
-    },
-  }),
-);
-playerCube.addComponent(
-  new Movement({ behavior: new GravityBehavior(0.5, 0.1) }),
-);
-playerCube.addComponent(
-  new Movement({ behavior: new BounceBehavior({ decay: 2 }) }),
-);
+// const playerCube = world.createEntity();
+// playerCube.addComponent(
+//   new Position({ x: 100, y: canvasSetup.bounds.height - 80 }),
+// );
+// playerCube.addComponent(new Velocity({ x: 0, y: 0 }));
+// playerCube.addComponent(new Renderable({ color: "pink", size: 10 }));
+// playerCube.addComponent(
+//   new Controller({
+//     modifiers: {
+//       hold: {
+//         right: { v: 0.3 },
+//         left: { v: 0.3 },
+//         up: { v: 0.3 },
+//         down: { v: 0.3 },
+//       },
+//     },
+//   }),
+// );
+// playerCube.addComponent(
+//   new Movement({ behavior: new GravityBehavior(0.5, 0.1) }),
+// );
+// playerCube.addComponent(
+//   new Movement({ behavior: new BounceBehavior({ decay: 2 }) }),
+// );
 
 // User controllable cube with gravity
 const playerCube2 = world.createEntity();
@@ -112,11 +114,15 @@ playerCube2.addComponent(new Velocity({ x: 0, y: 0 }));
 playerCube2.addComponent(new Renderable({ color: "yellow", size: 10 }));
 playerCube2.addComponent(
   new Controller({
-    directions: {
-      right: { v: 0.3 },
-      left: { v: 0.3 },
-      up: { v: 0.6 },
-      down: { v: 0.3 },
+    modifiers: {
+      hold: {
+        right: { v: 0.3 },
+        left: { v: 0.3 },
+        down: { v: 0.3 },
+      },
+      release: {
+        up: { v: 10 },
+      },
     },
   }),
 );
